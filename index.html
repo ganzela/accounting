@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mini Compiler (HTML/CSS/JS)</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    header {
+      display: flex; gap: 12px; align-items: center; justify-content: space-between;
+      padding: 12px 14px; border-bottom: 1px solid #ccc;
+    }
+    header .left { display: flex; gap: 10px; align-items: center; }
+    button {
+      padding: 8px 12px; border: 1px solid #888; border-radius: 10px;
+      background: transparent; cursor: pointer;
+    }
+    button:hover { opacity: 0.85; }
+    .wrap { display: grid; grid-template-columns: 1fr 1fr; height: calc(100vh - 58px); }
+    .editors {
+      display: grid; grid-template-rows: 1fr 1fr 1fr;
+      border-right: 1px solid #ccc; min-width: 0;
+    }
+    .panel { display: grid; grid-template-rows: auto 1fr; min-height: 0; }
+    .panel h3 {
+      margin: 0; padding: 8px 12px; font-size: 14px; border-bottom: 1px solid #ccc;
+    }
+    textarea {
+      width: 100%; height: 100%; resize: none; border: 0; outline: none;
+      padding: 10px 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px; line-height: 1.35; box-sizing: border-box;
+    }
+    .preview { min-width: 0; display: grid; grid-template-rows: auto 1fr; }
+    .status {
+      padding: 8px 12px; border-bottom: 1px solid #ccc; font-size: 13px;
+      display: flex; gap: 12px; align-items: center; justify-content: space-between;
+    }
+    iframe { width: 100%; height: 100%; border: 0; background: white; }
+    .small { font-size: 12px; opacity: 0.75; }
+    label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+    @media (max-width: 900px) {
+      .wrap { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+      .editors { border-right: 0; border-bottom: 1px solid #ccc; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="left">
+      <strong>Mini Compiler</strong>
+      <span class="small">HTML / CSS / JS → Preview</span>
+    </div>
+    <div class="right">
+      <label title="Автооновлення при вводі">
+        <input id="autoRun" type="checkbox" checked />
+        Auto-run
+      </label>
+      <button id="runBtn">Run ▶</button>
+      <button id="resetBtn" title="Повернути приклад">Reset</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="editors">
+      <section class="panel">
+        <h3>HTML</h3>
+        <textarea id="html"></textarea>
+      </section>
+      <section class="panel">
+        <h3>CSS</h3>
+        <textarea id="css"></textarea>
+      </section>
+      <section class="panel">
+        <h3>JavaScript</h3>
+        <textarea id="js"></textarea>
+      </section>
+    </div>
+
+    <div class="preview">
+      <div class="status">
+        <span id="msg">Готово.</span>
+        <span class="small">Порада: Ctrl/⌘ + Enter = Run</span>
+      </div>
+      <iframe id="out" sandbox="allow-scripts allow-forms allow-modals allow-popups"></iframe>
+    </div>
+  </div>
+
+  <script>
+    const htmlEl = document.getElementById("html");
+    const cssEl  = document.getElementById("css");
+    const jsEl   = document.getElementById("js");
+    const out    = document.getElementById("out");
+    const msg    = document.getElementById("msg");
+    const autoRun = document.getElementById("autoRun");
+
+    const starter = {
+      html: `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Demo</title>
+  </head>
+  <body>
+    <h1>Привіт 👋</h1>
+    <p>Це міні-компілятор у браузері.</p>
+    <button id="btn">Натисни мене</button>
+  </body>
+</html>`,
+      css: `body { font-family: system-ui, sans-serif; padding: 24px; }
+h1 { margin: 0 0 10px; }
+button { padding: 10px 14px; border-radius: 10px; border: 1px solid #888; }`,
+      js: `document.getElementById("btn").addEventListener("click", () => {
+  alert("Працює! ✅");
+});`
+    };
+
+    function buildDoc() {
+      // Збираємо повний HTML-документ у srcdoc
+      const html = htmlEl.value || "";
+      const css  = cssEl.value || "";
+      const js   = jsEl.value || "";
+
+      // Якщо користувач вставив повний документ — просто доповнимо стилем і скриптом
+      // Якщо ні — загорнемо в базову структуру.
+      const looksLikeFullDoc = /<html[\s>]/i.test(html) || /<!doctype/i.test(html);
+
+      if (looksLikeFullDoc) {
+        // Вставляємо CSS перед </head>, а JS перед </body> якщо можливо
+        let doc = html;
+
+        if (css.trim()) {
+          if (/<\/head>/i.test(doc)) doc = doc.replace(/<\/head>/i, `<style>${css}</style></head>`);
+          else doc = `<style>${css}</style>\n` + doc;
+        }
+
+        if (js.trim()) {
+          if (/<\/body>/i.test(doc)) doc = doc.replace(/<\/body>/i, `<script>${js}<\/script></body>`);
+          else doc += `\n<script>${js}<\/script>`;
+        }
+
+        return doc;
+      }
+
+      // Якщо HTML — це лише шматок розмітки
+      return `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>${css}</style>
+  </head>
+  <body>
+    ${html}
+    <script>${js}<\/script>
+  </body>
+</html>`;
+    }
+
+    function run() {
+      const doc = buildDoc();
+      out.srcdoc = doc;
+      msg.textContent = "Запущено ✅";
+      setTimeout(() => (msg.textContent = "Готово."), 800);
+    }
+
+    function reset() {
+      htmlEl.value = starter.html;
+      cssEl.value = starter.css;
+      jsEl.value = starter.js;
+      run();
+    }
+
+    // Автооновлення з невеликим debounce
+    let t = null;
+    function scheduleRun() {
+      if (!autoRun.checked) return;
+      clearTimeout(t);
+      t = setTimeout(run, 250);
+    }
+
+    document.getElementById("runBtn").addEventListener("click", run);
+    document.getElementById("resetBtn").addEventListener("click", reset);
+
+    [htmlEl, cssEl, jsEl].forEach(el => el.addEventListener("input", scheduleRun));
+
+    // Ctrl/⌘ + Enter
+    window.addEventListener("keydown", (e) => {
+      const isEnter = e.key === "Enter";
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && isEnter) {
+        e.preventDefault();
+        run();
+      }
+    });
+
+    // Старт
+    reset();
+  </script>
+</body>
+</html>
