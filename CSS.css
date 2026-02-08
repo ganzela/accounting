@@ -1,0 +1,11 @@
+.wrapper {
+    display: flex;
+    gap: 20px; /* Відступ між контентом і панеллю */
+}
+.sidebar {
+    width: 250px; /* Ширина панелі */
+    background-color: #f4f4f4;
+}
+main {
+    flex: 1; /* Основний контент займає решту місця */
+}
