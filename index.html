@@ -3,25 +3,497 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Головна</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>Навчальний простір</title>
+
+  <style>
+    :root{
+      --bg: #0b0f17;
+      --panel: rgba(255,255,255,.06);
+      --panel-2: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.65);
+      --accent: #8ab4ff;
+      --shadow: 0 18px 50px rgba(0,0,0,.35);
+      --radius: 18px;
+      --sidebar: 280px;
+    }
+
+    /* Light mode (за бажанням можна прибрати) */
+    @media (prefers-color-scheme: light) {
+      :root{
+        --bg:#f7f8fb;
+        --panel: rgba(15,18,30,.05);
+        --panel-2: rgba(15,18,30,.07);
+        --stroke: rgba(15,18,30,.10);
+        --text: rgba(15,18,30,.92);
+        --muted: rgba(15,18,30,.62);
+        --accent:#2f6fed;
+        --shadow: 0 18px 45px rgba(15,18,30,.12);
+      }
+    }
+
+    *{ box-sizing: border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 500px at 10% 10%, rgba(138,180,255,.18), transparent 55%),
+        radial-gradient(900px 500px at 90% 20%, rgba(255,255,255,.08), transparent 60%),
+        var(--bg);
+    }
+
+    .app{
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: var(--sidebar) 1fr;
+      gap: 18px;
+      padding: 18px;
+    }
+
+    /* Sidebar */
+    .sidebar{
+      position: sticky;
+      top: 18px;
+      align-self: start;
+      height: calc(100vh - 36px);
+      border: 1px solid var(--stroke);
+      background: linear-gradient(180deg, var(--panel), transparent);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand{
+      padding: 16px 16px 12px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      border-bottom: 1px solid var(--stroke);
+      background: rgba(0,0,0,.04);
+    }
+
+    .logo{
+      width: 38px; height: 38px;
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      background: linear-gradient(135deg, rgba(138,180,255,.28), rgba(255,255,255,.06));
+      display:grid; place-items:center;
+      font-weight: 700;
+      letter-spacing: .5px;
+    }
+
+    .brand h1{
+      font-size: 14px;
+      margin: 0;
+      line-height: 1.1;
+    }
+    .brand p{
+      margin: 3px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .nav{
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav a{
+      text-decoration: none;
+      color: var(--text);
+      border: 1px solid transparent;
+      background: rgba(255,255,255,.04);
+      padding: 12px 12px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      outline: none;
+    }
+
+    .nav a:hover{
+      background: rgba(255,255,255,.07);
+      border-color: var(--stroke);
+      transform: translateY(-1px);
+    }
+
+    .nav a.active{
+      background: linear-gradient(135deg, rgba(138,180,255,.22), rgba(255,255,255,.05));
+      border-color: rgba(138,180,255,.35);
+    }
+
+    .chip{
+      width: 28px; height: 28px;
+      border-radius: 10px;
+      border: 1px solid var(--stroke);
+      display: grid; place-items:center;
+      background: rgba(255,255,255,.05);
+      font-size: 14px;
+    }
+
+    .nav .meta{
+      display:flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .nav .title{
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .nav .sub{
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar-footer{
+      margin-top: auto;
+      padding: 12px 14px;
+      border-top: 1px solid var(--stroke);
+      color: var(--muted);
+      font-size: 12px;
+      display:flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    /* Content */
+    .content{
+      border: 1px solid var(--stroke);
+      background: linear-gradient(180deg, var(--panel), transparent);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-height: calc(100vh - 36px);
+    }
+
+    .content-header{
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--stroke);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .content-header h2{
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: .2px;
+    }
+
+    .content-header p{
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+      max-width: 70ch;
+    }
+
+    .badge{
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      padding: 8px 10px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .content-body{
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      animation: fadeIn .18s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card{
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      border-radius: 16px;
+      padding: 14px 14px;
+    }
+
+    .card h3{
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .card p, .card li{
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .grid{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(138,180,255,.35);
+      background: rgba(138,180,255,.12);
+      color: var(--text);
+      text-decoration:none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn:active{ transform: translateY(1px); }
+
+    /* Responsive */
+    @media (max-width: 880px){
+      :root{ --sidebar: 92px; }
+      .brand .text { display:none; }
+      .nav .meta { display:none; }
+      .sidebar-footer { display:none; }
+      .content-header p { display:none; }
+    }
+  </style>
 </head>
+
 <body>
-  <div class="layout">
-    <aside class="sidebar">
-      <h2>Предмети</h2>
-      <nav class="nav">
-        <a class="active" href="index.html">Головна</a>
-        <a href="history.html">Історія</a>
-        <a href="math.html">Математика</a>
-        <a href="ukrainian.html">Українська мова</a>
+  <div class="app">
+    <!-- LEFT: Sidebar -->
+    <aside class="sidebar" aria-label="Бічне меню">
+      <div class="brand">
+        <div class="logo">ED</div>
+        <div class="text">
+          <h1>Навчальний простір</h1>
+          <p>Меню предметів</p>
+        </div>
+      </div>
+
+      <nav class="nav" id="nav">
+        <a href="#home" data-page="home" class="active">
+          <span class="chip">🏠</span>
+          <span class="meta">
+            <span class="title">Головна</span>
+            <span class="sub">Огляд і швидкий старт</span>
+          </span>
+        </a>
+
+        <a href="#history" data-page="history">
+          <span class="chip">📜</span>
+          <span class="meta">
+            <span class="title">Історія</span>
+            <span class="sub">Теми, дати, події</span>
+          </span>
+        </a>
+
+        <a href="#math" data-page="math">
+          <span class="chip">➗</span>
+          <span class="meta">
+            <span class="title">Математика</span>
+            <span class="sub">Правила та приклади</span>
+          </span>
+        </a>
+
+        <a href="#ua" data-page="ua">
+          <span class="chip">🇺🇦</span>
+          <span class="meta">
+            <span class="title">Українська мова</span>
+            <span class="sub">Граматика й вправи</span>
+          </span>
+        </a>
       </nav>
+
+      <div class="sidebar-footer">
+        <span id="clock">—</span>
+        <span>v1.0</span>
+      </div>
     </aside>
 
-    <main class="content">
-      <h1>Головна</h1>
-      <p>Обери предмет зліва, щоб перейти на сторінку.</p>
+    <!-- RIGHT: Content -->
+    <main class="content" aria-live="polite">
+      <header class="content-header">
+        <div>
+          <h2 id="pageTitle">Головна</h2>
+          <p id="pageDesc">Обери предмет зліва — контент справа буде змінюватися, а меню залишиться на місці.</p>
+        </div>
+        <span class="badge" id="pageTag">#home</span>
+      </header>
+
+      <section class="content-body" id="content"></section>
     </main>
   </div>
+
+  <script>
+    const pages = {
+      home: {
+        title: "Головна",
+        desc: "Обери предмет зліва — контент справа буде змінюватися, а меню залишиться на місці.",
+        tag: "#home",
+        render() {
+          return `
+            <div class="grid">
+              <div class="card">
+                <h3>Як це працює</h3>
+                <p>Це односторінковий макет: натискаєш пункт меню → змінюється тільки контент справа.</p>
+              </div>
+              <div class="card">
+                <h3>Що можна додати</h3>
+                <p>Пошук по темах, список уроків, завдання, файли, тести — усе в цьому ж стилі.</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Швидкі дії</h3>
+              <p style="margin-bottom:10px;">Натисни, щоб перейти:</p>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <a class="btn" href="#history">📜 Історія</a>
+                <a class="btn" href="#math">➗ Математика</a>
+                <a class="btn" href="#ua">🇺🇦 Українська мова</a>
+              </div>
+            </div>
+          `;
+        }
+      },
+
+      history: {
+        title: "Історія",
+        desc: "Короткі блоки для тем, дат і подій. Додай свої матеріали у картки.",
+        tag: "#history",
+        render() {
+          return `
+            <div class="grid">
+              <div class="card">
+                <h3>Тема</h3>
+                <p>Наприклад: “Київська Русь”, “Козацька доба”, “Україна у ХХ ст.”</p>
+              </div>
+              <div class="card">
+                <h3>Пам’ятка</h3>
+                <p>Факти, персоналії, наслідки, терміни — коротко й структуровано.</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Список для заповнення</h3>
+              <ul>
+                <li>Дата → подія → наслідок</li>
+                <li>Персона → роль → ключова дія</li>
+                <li>Термін → визначення → приклад</li>
+              </ul>
+            </div>
+          `;
+        }
+      },
+
+      math: {
+        title: "Математика",
+        desc: "Шаблон під правила, формули та приклади задач. Легко розширюється.",
+        tag: "#math",
+        render() {
+          return `
+            <div class="grid">
+              <div class="card">
+                <h3>Правило дня</h3>
+                <p>Наприклад: “Як знаходити відсоток від числа”, “Формули скороченого множення”.</p>
+              </div>
+              <div class="card">
+                <h3>Приклад</h3>
+                <p>Записуй умову → розв’язання → відповідь (окремими кроками).</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Міні-блок вправ</h3>
+              <p>1) 15% від 200 = ?<br/>2) (a+b)² = ?<br/>3) 3x + 5 = 20 → x = ?</p>
+            </div>
+          `;
+        }
+      },
+
+      ua: {
+        title: "Українська мова",
+        desc: "Картки під правила та тренування. Додавай вправи і приклади речень.",
+        tag: "#ua",
+        render() {
+          return `
+            <div class="grid">
+              <div class="card">
+                <h3>Правило</h3>
+                <p>Наприклад: “Не з дієприкметниками”, “Чергування у-в / і-й”, “Відмінки”.</p>
+              </div>
+              <div class="card">
+                <h3>Приклади</h3>
+                <p>1–2 речення з поясненням, підкресленням, виділенням орфограм.</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Вправа</h3>
+              <p>Встав пропущені літери / вибери правильний варіант / поясни написання.</p>
+            </div>
+          `;
+        }
+      }
+    };
+
+    const nav = document.getElementById("nav");
+    const content = document.getElementById("content");
+    const pageTitle = document.getElementById("pageTitle");
+    const pageDesc = document.getElementById("pageDesc");
+    const pageTag = document.getElementById("pageTag");
+
+    function setActive(pageKey){
+      [...nav.querySelectorAll("a")].forEach(a => {
+        a.classList.toggle("active", a.dataset.page === pageKey);
+      });
+    }
+
+    function renderPage(pageKey){
+      const page = pages[pageKey] || pages.home;
+      pageTitle.textContent = page.title;
+      pageDesc.textContent = page.desc;
+      pageTag.textContent = page.tag;
+      content.innerHTML = page.render();
+      setActive(pageKey);
+    }
+
+    function route(){
+      const hash = (location.hash || "#home").replace("#", "");
+      renderPage(hash);
+    }
+
+    window.addEventListener("hashchange", route);
+    route();
+
+    // Невеликий годинник внизу (необов’язково, просто “живість”)
+    const clockEl = document.getElementById("clock");
+    function tick(){
+      const d = new Date();
+      const hh = String(d.getHours()).padStart(2,"0");
+      const mm = String(d.getMinutes()).padStart(2,"0");
+      clockEl.textContent = `${hh}:${mm}`;
+    }
+    tick();
+    setInterval(tick, 1000 * 10);
+  </script>
 </body>
 </html>
